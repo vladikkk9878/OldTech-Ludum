@@ -3,14 +3,15 @@ using UnityEngine.InputSystem;
 
 public class PlayerMovement : MonoBehaviour
 {
-    [Header("Настройки движения")]
     public float moveSpeed = 5f;
     public float mouseSensitivity = 0.1f;
     public Transform cameraTransform;
 
-    [Header("Покачивание камеры (Head Bobbing)")]
     public float bobbingSpeed = 14f;
     public float bobbingAmount = 0.05f;
+
+    public float idleBobSpeed = 2f;
+    public float idleBobAmount = 0.015f;
 
     private CharacterController characterController;
     private Vector2 moveInput;
@@ -18,7 +19,8 @@ public class PlayerMovement : MonoBehaviour
     private float cameraPitch = 0f;
     
     private float defaultY = 0f;
-    private float timer = 0f;
+    private float walkTimer = 0f;
+    private float idleTimer = 0f;
 
     void Start()
     {
@@ -58,7 +60,7 @@ public class PlayerMovement : MonoBehaviour
 
         RotatePlayer();
         MovePlayer();
-        HandleHeadBob();
+        HandleCameraEffects();
     }
 
     void RotatePlayer()
@@ -80,7 +82,7 @@ public class PlayerMovement : MonoBehaviour
         characterController.Move(finalVelocity * Time.deltaTime);
     }
 
-    void HandleHeadBob()
+    void HandleCameraEffects()
     {
         if (cameraTransform == null || characterController == null) return;
 
@@ -88,18 +90,23 @@ public class PlayerMovement : MonoBehaviour
 
         if (isMoving)
         {
-            timer += Time.deltaTime * bobbingSpeed;
+            idleTimer = 0f;
+            walkTimer += Time.deltaTime * bobbingSpeed;
             
-            float newY = defaultY + Mathf.Sin(timer) * bobbingAmount;
-            float newX = Mathf.Cos(timer / 2) * bobbingAmount * 0.5f;
+            float newY = defaultY + Mathf.Sin(walkTimer) * bobbingAmount;
+            float newX = Mathf.Cos(walkTimer / 2) * bobbingAmount * 0.5f;
 
             cameraTransform.localPosition = new Vector3(newX, newY, cameraTransform.localPosition.z);
         }
         else
         {
-            timer = 0f;
-            Vector3 targetPosition = new Vector3(0f, defaultY, cameraTransform.localPosition.z);
-            cameraTransform.localPosition = Vector3.Lerp(cameraTransform.localPosition, targetPosition, Time.deltaTime * 8f);
+            walkTimer = 0f;
+            idleTimer += Time.deltaTime * idleBobSpeed;
+
+            float newY = defaultY + Mathf.Sin(idleTimer) * idleBobAmount;
+            float newX = Mathf.Cos(idleTimer * 0.5f) * (idleBobAmount * 0.3f);
+
+            cameraTransform.localPosition = new Vector3(newX, newY, cameraTransform.localPosition.z);
         }
     }
 }

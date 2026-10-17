@@ -3,27 +3,25 @@ using UnityEngine.InputSystem;
 
 public class LidarScanner : MonoBehaviour
 {
-    [Header("Ссылки")]
     public ParticleSystem lidarParticleSystem;
     public AudioSource audioSource;
-    public AudioClip scanSound;
     private Camera mainCamera;
 
-    [Header("Настройки лучей")]
+    public GameObject pointScanWindow;
+    public GameObject wideScanWindow;
+
     public float scanDistance = 75f;
     public float particleSize = 0.01f;
-    public Gradient distanceColors;
     public LayerMask layersToIgnore;
 
-    [Header("Режим ЛКМ (Плотный луч)")]
     public int leftClickRays = 150;
     public float leftClickSpread = 10f;
+    public AudioClip leftClickSound;
 
-    [Header("Режим ПКМ (Рассеянный веер)")]
     public int rightClickRays = 300;
     public float rightClickSpread = 50f;
+    public AudioClip rightClickSound;
 
-    [Header("Настройки звука")]
     public float minPitch = 0.85f;
     public float maxPitch = 1.25f;
 
@@ -54,31 +52,47 @@ public class LidarScanner : MonoBehaviour
             fadeGradient.SetKeys(colorKeys, alphaKeys);
             colorModule.color = fadeGradient;
         }
+
+        if (pointScanWindow != null) pointScanWindow.SetActive(false);
+        if (wideScanWindow != null) wideScanWindow.SetActive(false);
     }
 
     void Update()
     {
         if (Mouse.current == null || mainCamera == null || lidarParticleSystem == null) return;
 
-        bool isScanning = false;
+        bool leftPressed = Mouse.current.leftButton.isPressed;
+        bool rightPressed = Mouse.current.rightButton.isPressed;
+        AudioClip soundToPlay = null;
 
-        if (Mouse.current.leftButton.isPressed)
+        if (leftPressed)
         {
             Scan(leftClickRays, leftClickSpread);
-            isScanning = true;
+            soundToPlay = leftClickSound;
+
+            if (pointScanWindow != null) pointScanWindow.SetActive(true);
+            if (wideScanWindow != null) wideScanWindow.SetActive(false);
         }
-        else if (Mouse.current.rightButton.isPressed)
+        else if (rightPressed)
         {
             Scan(rightClickRays, rightClickSpread);
-            isScanning = true;
+            soundToPlay = rightClickSound;
+
+            if (pointScanWindow != null) pointScanWindow.SetActive(false);
+            if (wideScanWindow != null) wideScanWindow.SetActive(true);
+        }
+        else
+        {
+            if (pointScanWindow != null) pointScanWindow.SetActive(false);
+            if (wideScanWindow != null) wideScanWindow.SetActive(false);
         }
 
-        if (isScanning && audioSource != null && scanSound != null)
+        if (soundToPlay != null && audioSource != null)
         {
             if (!audioSource.isPlaying)
             {
                 audioSource.pitch = Random.Range(minPitch, maxPitch);
-                audioSource.PlayOneShot(scanSound);
+                audioSource.PlayOneShot(soundToPlay);
             }
         }
     }
@@ -108,15 +122,12 @@ public class LidarScanner : MonoBehaviour
 
             if (Physics.Raycast(ray, out hit, scanDistance, ~layersToIgnore))
             {
-                float normalizedDistance = hit.distance / scanDistance;
-                Color pointColor = distanceColors.Evaluate(normalizedDistance);
-
                 if (activeCount < maxParticles)
                 {
                     ParticleSystem.EmitParams emitParams = new ParticleSystem.EmitParams();
                     emitParams.position = hit.point;
                     emitParams.velocity = Vector3.zero;
-                    emitParams.startColor = pointColor;
+                    emitParams.startColor = Color.white;
                     emitParams.startSize = particleSize;
 
                     lidarParticleSystem.Emit(emitParams, 1);
@@ -126,7 +137,7 @@ public class LidarScanner : MonoBehaviour
                 {
                     particleBuffer[currentRingIndex].position = hit.point;
                     particleBuffer[currentRingIndex].velocity = Vector3.zero;
-                    particleBuffer[currentRingIndex].startColor = pointColor;
+                    particleBuffer[currentRingIndex].startColor = Color.white;
                     particleBuffer[currentRingIndex].startSize = particleSize;
                     particleBuffer[currentRingIndex].remainingLifetime = lidarParticleSystem.main.startLifetime.constant;
 
