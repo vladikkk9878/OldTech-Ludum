@@ -7,59 +7,43 @@ public class LidarScanner : MonoBehaviour
     public AudioSource audioSource;
     private Camera mainCamera;
 
-    public GameObject pointScanWindow;
-    public GameObject wideScanWindow;
+    public AudioClip leftClickSound;
+    public AudioClip rightClickSound;
+    public AudioClip ambientMusic;
 
-    public float scanDistance = 75f;
-    public float particleSize = 0.01f;
+    public float scanDistance = 100f;
+    public float particleSize = 0.02f;
     public LayerMask layersToIgnore;
 
     public int leftClickRays = 150;
     public float leftClickSpread = 10f;
-    public AudioClip leftClickSound;
 
     public int rightClickRays = 300;
     public float rightClickSpread = 50f;
-    public AudioClip rightClickSound;
 
-    public float minPitch = 0.85f;
-    public float maxPitch = 1.25f;
-
-    private ParticleSystem.ColorOverLifetimeModule colorModule;
     private ParticleSystem.Particle[] particleBuffer;
     private int currentRingIndex = 0;
     private bool bufferInitialized = false;
+    private AudioSource ambientSource;
+    private AudioClip lastPlayingClip;
 
     void Start()
     {
         mainCamera = Camera.main;
 
-        if (lidarParticleSystem != null)
+        if (audioSource != null && ambientMusic != null)
         {
-            colorModule = lidarParticleSystem.colorOverLifetime;
-            colorModule.enabled = true;
-
-            Gradient fadeGradient = new Gradient();
-            
-            GradientAlphaKey[] alphaKeys = new GradientAlphaKey[2];
-            alphaKeys[0] = new GradientAlphaKey(1.0f, 0.0f);
-            alphaKeys[1] = new GradientAlphaKey(0.0f, 1.0f);
-
-            GradientColorKey[] colorKeys = new GradientColorKey[2];
-            colorKeys[0] = new GradientColorKey(Color.white, 0.0f);
-            colorKeys[1] = new GradientColorKey(Color.white, 1.0f);
-
-            fadeGradient.SetKeys(colorKeys, alphaKeys);
-            colorModule.color = fadeGradient;
+            ambientSource = gameObject.AddComponent<AudioSource>();
+            ambientSource.clip = ambientMusic;
+            ambientSource.loop = true;
+            ambientSource.volume = 0.5f;
+            ambientSource.Play();
         }
-
-        if (pointScanWindow != null) pointScanWindow.SetActive(false);
-        if (wideScanWindow != null) wideScanWindow.SetActive(false);
     }
 
     void Update()
     {
-        if (Mouse.current == null || mainCamera == null || lidarParticleSystem == null) return;
+        if (Mouse.current == null || mainCamera == null || lidarParticleSystem == null || audioSource == null) return;
 
         bool leftPressed = Mouse.current.leftButton.isPressed;
         bool rightPressed = Mouse.current.rightButton.isPressed;
@@ -69,30 +53,31 @@ public class LidarScanner : MonoBehaviour
         {
             Scan(leftClickRays, leftClickSpread);
             soundToPlay = leftClickSound;
-
-            if (pointScanWindow != null) pointScanWindow.SetActive(true);
-            if (wideScanWindow != null) wideScanWindow.SetActive(false);
         }
         else if (rightPressed)
         {
             Scan(rightClickRays, rightClickSpread);
             soundToPlay = rightClickSound;
+        }
 
-            if (pointScanWindow != null) pointScanWindow.SetActive(false);
-            if (wideScanWindow != null) wideScanWindow.SetActive(true);
+        if (soundToPlay != null)
+        {
+            if (audioSource.clip != soundToPlay || !audioSource.isPlaying)
+            {
+                audioSource.clip = soundToPlay;
+                audioSource.loop = true; 
+                audioSource.pitch = 1f;
+                audioSource.Play();
+            }
+            lastPlayingClip = soundToPlay;
         }
         else
         {
-            if (pointScanWindow != null) pointScanWindow.SetActive(false);
-            if (wideScanWindow != null) wideScanWindow.SetActive(false);
-        }
-
-        if (soundToPlay != null && audioSource != null)
-        {
-            if (!audioSource.isPlaying)
+            if (audioSource.isPlaying)
             {
-                audioSource.pitch = Random.Range(minPitch, maxPitch);
-                audioSource.PlayOneShot(soundToPlay);
+                audioSource.Stop();
+                audioSource.clip = null;
+                lastPlayingClip = null;
             }
         }
     }
