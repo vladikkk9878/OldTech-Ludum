@@ -13,6 +13,11 @@ public class PlayerMovement : MonoBehaviour
     public float idleBobSpeed = 2f;
     public float idleBobAmount = 0.015f;
 
+    public AudioSource movementAudioSource;
+    public AudioSource breathAudioSource;
+    public AudioClip footstepSound;
+    public AudioClip sighSound;
+
     private CharacterController characterController;
     private Vector2 moveInput;
     private Vector2 lookInput;
@@ -21,6 +26,7 @@ public class PlayerMovement : MonoBehaviour
     private float defaultY = 0f;
     private float walkTimer = 0f;
     private float idleTimer = 0f;
+    private float breathTimer = 0f;
 
     void Start()
     {
@@ -36,6 +42,14 @@ public class PlayerMovement : MonoBehaviour
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
         }
+
+        if (movementAudioSource != null && footstepSound != null)
+        {
+            movementAudioSource.clip = footstepSound;
+            movementAudioSource.loop = true;
+        }
+
+        breathTimer = 0f;
     }
 
     void Update()
@@ -61,6 +75,7 @@ public class PlayerMovement : MonoBehaviour
         RotatePlayer();
         MovePlayer();
         HandleCameraEffects();
+        HandleAudio();
     }
 
     void RotatePlayer()
@@ -107,6 +122,36 @@ public class PlayerMovement : MonoBehaviour
             float newX = Mathf.Cos(idleTimer * 0.5f) * (idleBobAmount * 0.3f);
 
             cameraTransform.localPosition = new Vector3(newX, newY, cameraTransform.localPosition.z);
+        }
+    }
+
+    void HandleAudio()
+    {
+        bool isMoving = moveInput.magnitude > 0.1f && characterController != null && characterController.isGrounded;
+
+        if (isMoving && movementAudioSource != null && footstepSound != null)
+        {
+            if (!movementAudioSource.isPlaying)
+            {
+                movementAudioSource.Play();
+            }
+        }
+        else
+        {
+            if (movementAudioSource != null && movementAudioSource.isPlaying)
+            {
+                movementAudioSource.Stop();
+            }
+        }
+
+        breathTimer += Time.deltaTime;
+        if (breathTimer >= 60f)
+        {
+            if (breathAudioSource != null && sighSound != null)
+            {
+                breathAudioSource.PlayOneShot(sighSound);
+            }
+            breathTimer = 0f;
         }
     }
 }
