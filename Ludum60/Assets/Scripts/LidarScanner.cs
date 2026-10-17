@@ -3,21 +3,19 @@ using UnityEngine.InputSystem;
 
 public class LidarScanner : MonoBehaviour
 {
-    [Header("Ссылки")]
-    public ParticleSystem lidarParticleSystem;
+    [Header("Ссылки")] public ParticleSystem lidarParticleSystem;
     private Camera mainCamera;
 
-    [Header("Настройки лучей")]
-    public float scanDistance = 50f;
+    [Header("Настройки лучей")] public float scanDistance = 50f;
     public float particleSize = 0.04f;
     public Gradient distanceColors;
 
-    [Header("Режим ЛКМ (Плотный луч)")]
-    public int leftClickRays = 150;
+    [Header("Режим ЛКМ (Плотный луч)")] public int leftClickRays = 150;
     public float leftClickSpread = 3f;
 
     [Header("Режим ПКМ (Рассеянный веер)")]
     public int rightClickRays = 300;
+
     public float rightClickSpread = 45f;
 
     private ParticleSystem.ColorOverLifetimeModule colorModule;
@@ -32,7 +30,7 @@ public class LidarScanner : MonoBehaviour
             colorModule.enabled = true;
 
             Gradient fadeGradient = new Gradient();
-            
+
             GradientAlphaKey[] alphaKeys = new GradientAlphaKey[2];
             alphaKeys[0] = new GradientAlphaKey(1.0f, 0.0f);
             alphaKeys[1] = new GradientAlphaKey(0.0f, 1.0f);
@@ -62,20 +60,19 @@ public class LidarScanner : MonoBehaviour
 
     void Scan(int raysCount, float currentSpread)
     {
-        if (lidarParticleSystem == null) return;
+        if (lidarParticleSystem == null || mainCamera == null) return;
 
-        Vector2 mousePosition = Mouse.current.position.ReadValue();
         ParticleSystem.EmitParams emitParams = new ParticleSystem.EmitParams();
 
         for (int i = 0; i < raysCount; i++)
         {
-            Vector3 randomOffset = new Vector3(
+            Vector3 rayDirection = Quaternion.Euler(
                 Random.Range(-currentSpread, currentSpread),
                 Random.Range(-currentSpread, currentSpread),
                 0
-            ) * 10f;
+            ) * transform.forward;
 
-            Ray ray = mainCamera.ScreenPointToRay(new Vector3(mousePosition.x, mousePosition.y, 0) + randomOffset);
+            Ray ray = new Ray(transform.position, rayDirection);
             RaycastHit hit;
 
             if (Physics.Raycast(ray, out hit, scanDistance))
@@ -87,7 +84,7 @@ public class LidarScanner : MonoBehaviour
                 emitParams.velocity = Vector3.zero;
                 emitParams.startColor = pointColor;
                 emitParams.startSize = particleSize;
-                
+
                 lidarParticleSystem.Emit(emitParams, 1);
             }
         }
