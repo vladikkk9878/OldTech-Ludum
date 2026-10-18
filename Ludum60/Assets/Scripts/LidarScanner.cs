@@ -10,6 +10,7 @@ public class LidarScanner : MonoBehaviour
     public AudioClip leftClickSound;
     public AudioClip rightClickSound;
     public AudioClip ambientMusic;
+    public AudioClip errorSound;
 
     public float scanDistance = 100f;
     public float particleSize = 0.02f;
@@ -25,7 +26,16 @@ public class LidarScanner : MonoBehaviour
     private int currentRingIndex = 0;
     private bool bufferInitialized = false;
     private AudioSource ambientSource;
-    private AudioClip lastPlayingClip;
+
+    private bool isLeftPlaying = false;
+    private float leftScanTimer = 0f;
+    private bool leftNeedsReclick = false;
+
+    private bool isRightActive = false;
+    private float rightScanTimer = 0f;
+    private float rightCooldownTimer = 0f;
+    private bool isRightInCooldown = false;
+    private bool wasRightPressedLastFrame = false;
 
     void Start()
     {
@@ -47,37 +57,98 @@ public class LidarScanner : MonoBehaviour
 
         bool leftPressed = Mouse.current.leftButton.isPressed;
         bool rightPressed = Mouse.current.rightButton.isPressed;
-        AudioClip soundToPlay = null;
 
-        if (leftPressed)
+        if (isRightInCooldown)
         {
-            Scan(leftClickRays, leftClickSpread);
-            soundToPlay = leftClickSound;
-        }
-        else if (rightPressed)
-        {
-            Scan(rightClickRays, rightClickSpread);
-            soundToPlay = rightClickSound;
-        }
-
-        if (soundToPlay != null)
-        {
-            if (audioSource.clip != soundToPlay || !audioSource.isPlaying)
+            rightCooldownTimer -= Time.deltaTime;
+            if (rightCooldownTimer <= 0f)
             {
-                audioSource.clip = soundToPlay;
-                audioSource.loop = true; 
-                audioSource.pitch = 1f;
+                isRightInCooldown = false;
+            }
+        }
+
+        if (rightPressed && !wasRightPressedLastFrame)
+        {
+            if (isRightInCooldown || isRightActive)
+            {
+                audioSource.PlayOneShot(errorSound);
+            }
+            else if (!leftPressed)
+            {
+                isRightActive = true;
+                rightScanTimer = 0f;
+                
+                if (isLeftPlaying)
+                {
+                    audioSource.Stop();
+                    isLeftPlaying = false;
+                }
+
+                audioSource.clip = rightClickSound;
+                audioSource.loop = true;
                 audioSource.Play();
             }
-            lastPlayingClip = soundToPlay;
         }
-        else
+        wasRightPressedLastFrame = rightPressed;
+
+        if (isRightActive)
         {
-            if (audioSource.isPlaying)
+            rightScanTimer += Time.deltaTime;
+            if (rightScanTimer >= 5f)
             {
                 audioSource.Stop();
-                audioSource.clip = null;
-                lastPlayingClip = null;
+                isRightActive = false;
+                isRightInCooldown = true;
+                rightCooldownTimer = 10f;
+                rightScanTimer = 0f;
+            }
+            else
+            {
+                Scan(rightClickRays, rightClickSpread);
+            }
+        }
+
+        if (!isRightActive)
+        {
+            if (!leftPressed)
+            {
+                leftNeedsReclick = false;
+            }
+
+            if (leftPressed && !leftNeedsReclick)
+            {
+                leftScanTimer += Time.deltaTime;
+                if (leftScanTimer >= 5f)
+                {
+                    if (isLeftPlaying)
+                    {
+                        audioSource.Stop();
+                        isLeftPlaying = false;
+                    }
+                    leftNeedsReclick = true;
+                    leftScanTimer = 0f;
+                }
+                else
+                {
+                    Scan(leftClickRays, leftClickSpread);
+
+                    if (!isLeftPlaying)
+                    {
+                        audioSource.clip = leftClickSound;
+                        audioSource.loop = true;
+                        audioSource.Play();
+                        isLeftPlaying = true;
+                    }
+                }
+            }
+            else
+            {
+                if (isLeftPlaying)
+                {
+                    audioSource.Stop();
+                    isLeftPlaying = false;
+                    leftScanTimer = 0f;
+                }
             }
         }
     }
