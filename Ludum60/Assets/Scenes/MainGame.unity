@@ -11033,6 +11033,7 @@ MonoBehaviour:
   rightClickSound: {fileID: 8300000, guid: d1b87a40c0bad3f439f6a522630ba1be, type: 3}
   ambientMusic: {fileID: 8300000, guid: cf3d54a51b7b8a94fbb01aa36edf4545, type: 3}
   errorSound: {fileID: 8300000, guid: 9be8e29823c96274a95b7abcb5e66f36, type: 3}
+  leftErrorSound: {fileID: 8300000, guid: 9be8e29823c96274a95b7abcb5e66f36, type: 3}
   scanDistance: 50
   particleSize: 0.04
   layersToIgnore:

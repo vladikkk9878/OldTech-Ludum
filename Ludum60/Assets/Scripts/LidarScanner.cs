@@ -11,6 +11,7 @@ public class LidarScanner : MonoBehaviour
     public AudioClip rightClickSound;
     public AudioClip ambientMusic;
     public AudioClip errorSound;
+    public AudioClip leftErrorSound;
 
     public float scanDistance = 100f;
     public float particleSize = 0.02f;
@@ -124,6 +125,10 @@ public class LidarScanner : MonoBehaviour
                     {
                         audioSource.Stop();
                         isLeftPlaying = false;
+                    }
+                    if (leftErrorSound != null)
+                    {
+                        audioSource.PlayOneShot(leftErrorSound);
                     }
                     leftNeedsReclick = true;
                     leftScanTimer = 0f;
