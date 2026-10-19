@@ -41,9 +41,12 @@ public class LidarScanner : MonoBehaviour
     private bool isRightInCooldown = false;
     private bool wasRightPressedLastFrame = false;
 
+    private Quaternion lastRotation;
+
     void Start()
     {
         mainCamera = Camera.main;
+        lastRotation = transform.rotation;
 
         if (audioSource != null && ambientMusic != null)
         {
@@ -159,6 +162,8 @@ public class LidarScanner : MonoBehaviour
                 }
             }
         }
+
+        lastRotation = transform.rotation;
     }
 
     void Scan(int raysCount, float currentSpread)
@@ -175,11 +180,14 @@ public class LidarScanner : MonoBehaviour
 
         for (int i = 0; i < raysCount; i++)
         {
-            Vector3 rayDirection = Quaternion.Euler(
+            float t = (raysCount > 1) ? (float)i / (raysCount - 1) : 0.5f;
+            Quaternion interpolatedRotation = Quaternion.Slerp(lastRotation, transform.rotation, t);
+
+            Vector3 rayDirection = interpolatedRotation * Quaternion.Euler(
                 Random.Range(-currentSpread, currentSpread),
                 Random.Range(-currentSpread, currentSpread),
                 0
-            ) * transform.forward;
+            ) * Vector3.forward;
 
             Ray ray = new Ray(transform.position, rayDirection);
             RaycastHit hit;

@@ -50,7 +50,7 @@ public class LevelManager : MonoBehaviour
     {
         if (uiCounterText != null)
         {
-            uiCounterText.text = $"СЕТЬ ГЕНЕРАТОРОВ: {activatedCount} / {totalGenerators}";
+            uiCounterText.text = $"Generators activated: {activatedCount} / {totalGenerators}";
         }
     }
 
@@ -60,8 +60,8 @@ public class LevelManager : MonoBehaviour
 
         if (uiCounterText != null)
         {
-            uiCounterText.text = "ВЫХОД ОТКРЫТ! БЕГИ!";
-            uiCounterText.color = Color.green;
+            uiCounterText.text = "The door was unlocked, run!";
+            uiCounterText.color = Color.whiteSmoke;
         }
 
         if (exitDoor != null)
