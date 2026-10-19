@@ -1,9 +1,13 @@
 using UnityEngine;
+using TMPro;
 
 public class LevelManager : MonoBehaviour
 {
     [Header("Настройки выхода")]
     public GameObject exitDoor;
+
+    [Header("Настройки UI интерфейса")]
+    public TextMeshProUGUI uiCounterText;
 
     private GeneratorItem[] allGenerators;
     private int totalGenerators;
@@ -20,6 +24,8 @@ public class LevelManager : MonoBehaviour
         {
             exitDoor.SetActive(true);
         }
+
+        UpdateUI();
     }
 
     public void CheckGenerators()
@@ -32,6 +38,7 @@ public class LevelManager : MonoBehaviour
         }
 
         Debug.Log($"[LEVEL] Прогресс: {activatedCount} / {totalGenerators}");
+        UpdateUI();
 
         if (activatedCount >= totalGenerators)
         {
@@ -39,9 +46,24 @@ public class LevelManager : MonoBehaviour
         }
     }
 
+    void UpdateUI()
+    {
+        if (uiCounterText != null)
+        {
+            uiCounterText.text = $"СЕТЬ ГЕНЕРАТОРОВ: {activatedCount} / {totalGenerators}";
+        }
+    }
+
     void OpenExit()
     {
         Debug.Log("[LEVEL] ВСЕ ГЕНЕРАТОРЫ СЕТИ ВКЛЮЧЕНЫ! ВЫХОД ОТКРЫТ!");
+
+        if (uiCounterText != null)
+        {
+            uiCounterText.text = "ВЫХОД ОТКРЫТ! БЕГИ!";
+            uiCounterText.color = Color.green;
+        }
+
         if (exitDoor != null)
         {
             exitDoor.SetActive(false);
