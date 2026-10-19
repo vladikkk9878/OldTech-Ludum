@@ -16,6 +16,9 @@ public class LidarScanner : MonoBehaviour
     public float scanDistance = 100f;
     public float particleSize = 0.02f;
     public LayerMask layersToIgnore;
+    public LayerMask greenLayer;
+    public LayerMask redLayer;
+    public LayerMask orangeLayer;
 
     public int leftClickRays = 150;
     public float leftClickSpread = 10f;
@@ -183,12 +186,28 @@ public class LidarScanner : MonoBehaviour
 
             if (Physics.Raycast(ray, out hit, scanDistance, ~layersToIgnore))
             {
+                int hitLayerMask = 1 << hit.collider.gameObject.layer;
+                Color targetColor = Color.white;
+
+                if ((hitLayerMask & greenLayer) != 0)
+                {
+                    targetColor = Color.green;
+                }
+                else if ((hitLayerMask & redLayer) != 0)
+                {
+                    targetColor = Color.red;
+                }
+                else if ((hitLayerMask & orangeLayer) != 0)
+                {
+                    targetColor = new Color(1f, 0.5f, 0f);
+                }
+
                 if (activeCount < maxParticles)
                 {
                     ParticleSystem.EmitParams emitParams = new ParticleSystem.EmitParams();
                     emitParams.position = hit.point;
                     emitParams.velocity = Vector3.zero;
-                    emitParams.startColor = Color.white;
+                    emitParams.startColor = targetColor;
                     emitParams.startSize = particleSize;
 
                     lidarParticleSystem.Emit(emitParams, 1);
@@ -198,7 +217,7 @@ public class LidarScanner : MonoBehaviour
                 {
                     particleBuffer[currentRingIndex].position = hit.point;
                     particleBuffer[currentRingIndex].velocity = Vector3.zero;
-                    particleBuffer[currentRingIndex].startColor = Color.white;
+                    particleBuffer[currentRingIndex].startColor = targetColor;
                     particleBuffer[currentRingIndex].startSize = particleSize;
                     particleBuffer[currentRingIndex].remainingLifetime = lidarParticleSystem.main.startLifetime.constant;
 
