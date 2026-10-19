@@ -8150,9 +8150,9 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1816140488}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -751, y: 486}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 224, y: -72}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &402536752
@@ -15249,7 +15249,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &697596407
 RectTransform:
   m_ObjectHideFlags: 0
@@ -27646,7 +27646,7 @@ MonoBehaviour:
   sighSound: {fileID: 8300000, guid: b7e988b3e3011e64bba5b51ade57d52c, type: 3}
   monsterTransform: {fileID: 1784475280}
   maxDistanceThreshold: 50
-  maxMoveSpeed: 13.4
+  maxMoveSpeed: 10
 --- !u!143 &1371241864
 CharacterController:
   m_ObjectHideFlags: 0
