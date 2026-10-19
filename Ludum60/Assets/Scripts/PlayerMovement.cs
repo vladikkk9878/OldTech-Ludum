@@ -3,7 +3,7 @@ using UnityEngine.InputSystem;
 
 public class PlayerMovement : MonoBehaviour
 {
-    public float moveSpeed = 5f;
+    public float moveSpeed = 6.7f;
     public float mouseSensitivity = 0.1f;
     public Transform cameraTransform;
 
@@ -18,6 +18,11 @@ public class PlayerMovement : MonoBehaviour
     public AudioClip footstepSound;
     public AudioClip sighSound;
 
+    [Header("Monster Proximity Settings")]
+    public Transform monsterTransform;
+    public float maxDistanceThreshold = 50f;
+    public float maxMoveSpeed = 13.4f;
+
     private CharacterController characterController;
     private Vector2 moveInput;
     private Vector2 lookInput;
@@ -27,6 +32,9 @@ public class PlayerMovement : MonoBehaviour
     private float walkTimer = 0f;
     private float idleTimer = 0f;
     private float breathTimer = 0f;
+
+    private float baseMoveSpeed;
+    private float baseBobbingSpeed;
 
     void Start()
     {
@@ -50,6 +58,17 @@ public class PlayerMovement : MonoBehaviour
         }
 
         breathTimer = 0f;
+        baseMoveSpeed = moveSpeed;
+        baseBobbingSpeed = bobbingSpeed;
+
+        if (monsterTransform == null)
+        {
+            MonsterAI monsterScript = FindFirstObjectByType<MonsterAI>();
+            if (monsterScript != null)
+            {
+                monsterTransform = monsterScript.transform;
+            }
+        }
     }
 
     void Update()
@@ -72,10 +91,36 @@ public class PlayerMovement : MonoBehaviour
             lookInput = Mouse.current.delta.ReadValue();
         }
 
+        HandleProximityScaling();
         RotatePlayer();
         MovePlayer();
         HandleCameraEffects();
         HandleAudio();
+    }
+
+    void HandleProximityScaling()
+    {
+        if (monsterTransform == null || !monsterTransform.gameObject.activeInHierarchy)
+        {
+            moveSpeed = baseMoveSpeed;
+            bobbingSpeed = baseBobbingSpeed;
+            return;
+        }
+
+        float distance = Vector3.Distance(transform.position, monsterTransform.position);
+
+        if (distance < maxDistanceThreshold)
+        {
+            float t = 1f - Mathf.Clamp01(distance / maxDistanceThreshold);
+            
+            moveSpeed = Mathf.Lerp(baseMoveSpeed, maxMoveSpeed, t);
+            bobbingSpeed = Mathf.Lerp(baseBobbingSpeed, baseBobbingSpeed * (maxMoveSpeed / baseMoveSpeed), t);
+        }
+        else
+        {
+            moveSpeed = baseMoveSpeed;
+            bobbingSpeed = baseBobbingSpeed;
+        }
     }
 
     void RotatePlayer()
@@ -135,6 +180,8 @@ public class PlayerMovement : MonoBehaviour
             {
                 movementAudioSource.Play();
             }
+
+            movementAudioSource.pitch = moveSpeed / baseMoveSpeed;
         }
         else
         {

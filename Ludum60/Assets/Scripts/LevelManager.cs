@@ -3,26 +3,34 @@ using TMPro;
 
 public class LevelManager : MonoBehaviour
 {
-    [Header("Настройки выхода")]
+    [Header("Exit Settings")]
     public GameObject exitDoor;
 
-    [Header("Настройки UI интерфейса")]
+    [Header("UI Settings")]
     public TextMeshProUGUI uiCounterText;
+
+    [Header("Monster Spawn Settings")]
+    public GameObject monsterObject;
+    public int generatorsRequiredForMonster = 3;
 
     private GeneratorItem[] allGenerators;
     private int totalGenerators;
     private int activatedCount = 0;
+    private bool isMonsterSpawned = false;
 
     void Start()
     {
         allGenerators = FindObjectsOfType<GeneratorItem>();
         totalGenerators = allGenerators.Length;
 
-        Debug.Log($"[LEVEL] На карте обнаружено генераторов: {totalGenerators}");
-
         if (exitDoor != null)
         {
             exitDoor.SetActive(true);
+        }
+
+        if (monsterObject != null)
+        {
+            monsterObject.SetActive(false);
         }
 
         UpdateUI();
@@ -37,12 +45,25 @@ public class LevelManager : MonoBehaviour
             if (gen.isActivated) activatedCount++;
         }
 
-        Debug.Log($"[LEVEL] Прогресс: {activatedCount} / {totalGenerators}");
         UpdateUI();
+
+        if (activatedCount >= generatorsRequiredForMonster && !isMonsterSpawned)
+        {
+            SpawnMonster();
+        }
 
         if (activatedCount >= totalGenerators)
         {
             OpenExit();
+        }
+    }
+
+    void SpawnMonster()
+    {
+        isMonsterSpawned = true;
+        if (monsterObject != null)
+        {
+            monsterObject.SetActive(true);
         }
     }
 
@@ -56,8 +77,6 @@ public class LevelManager : MonoBehaviour
 
     void OpenExit()
     {
-        Debug.Log("[LEVEL] ВСЕ ГЕНЕРАТОРЫ СЕТИ ВКЛЮЧЕНЫ! ВЫХОД ОТКРЫТ!");
-
         if (uiCounterText != null)
         {
             uiCounterText.text = "The door was unlocked, run!";

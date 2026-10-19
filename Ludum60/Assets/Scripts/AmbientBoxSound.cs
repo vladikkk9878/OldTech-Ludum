@@ -4,21 +4,22 @@ using UnityEngine;
 
 public class AmbientBoxSound : MonoBehaviour
 {
-    [Header("Список страшных звуков для этой коробки")]
+    [Header("Audio Configurations")]
+    public AudioSource customAudioSource;
     public List<AudioClip> sounds = new List<AudioClip>();
     
     [Range(0f, 1f)]
     public float volume = 0.5f;
 
-    [Header("Интервалы между звуками (сек)")]
+    [Header("Delay Settings")]
     public float minDelay = 15f;
     public float maxDelay = 40f;
 
-    [Header("Дистанция слышимости 3D звука")]
+    [Header("3D Distance Settings")]
     public float minDistance = 3f;
     public float maxDistance = 25f;
 
-    [Header("Разброс тональности")]
+    [Header("Pitch Settings")]
     public float minPitch = 0.8f;
     public float maxPitch = 1.1f;
 
@@ -31,13 +32,20 @@ public class AmbientBoxSound : MonoBehaviour
 
         playerListener = FindFirstObjectByType<AudioListener>();
 
-        audioSource = gameObject.AddComponent<AudioSource>();
-        audioSource.playOnAwake = false;
-        audioSource.loop = false;
-        audioSource.spatialBlend = 1f;
-        audioSource.rolloffMode = AudioRolloffMode.Logarithmic;
-        audioSource.minDistance = minDistance;
-        audioSource.maxDistance = maxDistance;
+        if (customAudioSource != null)
+        {
+            audioSource = customAudioSource;
+        }
+        else
+        {
+            audioSource = gameObject.AddComponent<AudioSource>();
+            audioSource.playOnAwake = false;
+            audioSource.loop = false;
+            audioSource.spatialBlend = 1f;
+            audioSource.rolloffMode = AudioRolloffMode.Logarithmic;
+            audioSource.minDistance = minDistance;
+            audioSource.maxDistance = maxDistance;
+        }
 
         StartCoroutine(PlaySoundsRandomly());
     }

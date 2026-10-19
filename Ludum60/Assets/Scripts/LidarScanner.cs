@@ -196,6 +196,7 @@ public class LidarScanner : MonoBehaviour
             {
                 int hitLayerMask = 1 << hit.collider.gameObject.layer;
                 Color targetColor = Color.white;
+                bool isRedPoint = false;
 
                 if ((hitLayerMask & greenLayer) != 0)
                 {
@@ -204,6 +205,7 @@ public class LidarScanner : MonoBehaviour
                 else if ((hitLayerMask & redLayer) != 0)
                 {
                     targetColor = Color.red;
+                    isRedPoint = true;
                 }
                 else if ((hitLayerMask & orangeLayer) != 0)
                 {
@@ -217,6 +219,11 @@ public class LidarScanner : MonoBehaviour
                     emitParams.velocity = Vector3.zero;
                     emitParams.startColor = targetColor;
                     emitParams.startSize = particleSize;
+                    
+                    if (isRedPoint)
+                    {
+                        emitParams.startLifetime = 5f;
+                    }
 
                     lidarParticleSystem.Emit(emitParams, 1);
                     activeCount++;
@@ -227,7 +234,15 @@ public class LidarScanner : MonoBehaviour
                     particleBuffer[currentRingIndex].velocity = Vector3.zero;
                     particleBuffer[currentRingIndex].startColor = targetColor;
                     particleBuffer[currentRingIndex].startSize = particleSize;
-                    particleBuffer[currentRingIndex].remainingLifetime = lidarParticleSystem.main.startLifetime.constant;
+                    
+                    if (isRedPoint)
+                    {
+                        particleBuffer[currentRingIndex].remainingLifetime = 5f;
+                    }
+                    else
+                    {
+                        particleBuffer[currentRingIndex].remainingLifetime = lidarParticleSystem.main.startLifetime.constant;
+                    }
 
                     currentRingIndex = (currentRingIndex + 1) % maxParticles;
                 }
